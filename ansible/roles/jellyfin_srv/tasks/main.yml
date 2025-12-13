@@ -1,0 +1,52 @@
+---
+- name: Install Intel GPU drivers and tools
+  ansible.builtin.apt:
+    name:
+      - vainfo
+      - intel-media-va-driver
+      - intel-gpu-tools
+      - curl
+      - gnupg
+    update_cache: yes
+    cache_valid_time: 3600
+    state: present
+
+- name: Create keyrings directory
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+
+- name: Download Jellyfin GPG key
+  ansible.builtin.get_url:
+    url: "{{ jellyfin_repo_root }}/jellyfin_team.gpg.key"
+    dest: /etc/apt/keyrings/jellyfin.gpg
+    mode: "0644"
+    force: yes
+
+- name: Add Jellyfin APT repository
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/jellyfin.gpg] {{jellyfin_repo_root}}/debian {{ ansible_distribution_release }} main"
+    state: present
+
+- name: Apt update
+  ansible.builtin.apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install Jellyfin package
+  ansible.builtin.apt:
+    name: "{{ jellyfin_package }}"
+    state: latest
+
+- name: Configure Jellyfin service
+  ansible.builtin.systemd:
+    name: jellyfin
+    state: started
+    enabled: yes
+
+- debug:
+    msg:
+      - "Installation complete. Next steps:"
+      - "1) Enable container firewall from PVE web GUI"
+      - "2) Configure Jellyfin"

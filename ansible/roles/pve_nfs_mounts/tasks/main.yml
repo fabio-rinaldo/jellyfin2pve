@@ -1,0 +1,2 @@
+- include_tasks: host.yml
+- include_tasks: lxc.yml

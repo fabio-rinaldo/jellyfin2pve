@@ -1,0 +1,38 @@
+---
+- name: "Check NFS feature on LXC {{target_lxc_vmid}}"
+  ansible.builtin.shell:
+    cmd: pct config {{ target_lxc_vmid }} | grep -E 'features:.*nfs' || echo ""
+  register: nfs_check
+  changed_when: false
+  failed_when: false
+
+- name: "Check 'video' mount config on LXC {{target_lxc_vmid}}"
+  ansible.builtin.shell:
+    cmd: pct config {{ target_lxc_vmid }} | grep -Fx {{nfs_mnt_lbl_video}}:\ {{nfs_mnt_dir_video}},mp={{nfs_mnt_dir_video}} > /dev/null && echo 'ok'
+  register: lxc_video_mnt_check
+  changed_when: false
+  failed_when: false
+
+- name: "Check 'music' mount config on LXC {{target_lxc_vmid}}"
+  ansible.builtin.shell:
+    cmd: pct config {{ target_lxc_vmid }} | grep -Fx {{nfs_mnt_lbl_music}}:\ {{nfs_mnt_dir_music}},mp={{nfs_mnt_dir_music}} > /dev/null && echo 'ok'
+  register: lxc_music_mnt_check
+  changed_when: false
+  failed_when: false
+
+- name: "Set NFS feature flag on LXC {{ target_lxc_vmid }}"
+  ansible.builtin.command: pct set {{ target_lxc_vmid }} --features mount=nfs
+  when: nfs_check.stdout == ""
+  notify: reboot jellyfin lxc
+
+- name: "Mount 'video' to LXC {{target_lxc_vmid}} as {{nfs_mnt_lbl_video}}"
+  ansible.builtin.command: >
+    pct set {{target_lxc_vmid}} -{{nfs_mnt_lbl_video}} {{nfs_mnt_dir_video}},mp={{nfs_mnt_dir_video}}
+  when: lxc_video_mnt_check.stdout == ""
+  notify: reboot jellyfin lxc
+
+- name: "Mount 'music' to LXC {{target_lxc_vmid}} as {{nfs_mnt_lbl_music}}"
+  ansible.builtin.command: >
+    pct set {{target_lxc_vmid}} -{{nfs_mnt_lbl_music}} {{nfs_mnt_dir_music}},mp={{nfs_mnt_dir_music}}
+  when: lxc_music_mnt_check.stdout == ""
+  notify: reboot jellyfin lxc

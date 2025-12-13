@@ -1,0 +1,57 @@
+---
+- name: Setup pve host for Intel GPU passthrough and NFS mounts
+  hosts: pve
+  gather_facts: true
+
+  roles:
+    - pve_nfs_mounts
+    - pve_gpu_pt
+
+  handlers:
+    - name: reboot jellyfin lxc
+      ansible.builtin.shell: |
+        pct stop {{ target_lxc_vmid }} || true
+        pct start {{ target_lxc_vmid }}
+    - name: wait for jellyfin lxc to reboot
+      ansible.builtin.wait_for:
+        host: "{{ hostvars['jellyfin_lxc']['ansible_host'] }}"
+        port: 22
+        delay: 15
+        timeout: 180
+        state: started
+      delegate_to: localhost
+      listen: reboot jellyfin lxc
+
+
+- name: Ensure Jellyfin LXC is running
+  hosts: pve
+  gather_facts: false
+
+  tasks:
+    - name: Check container status
+      ansible.builtin.shell: pct status {{ target_lxc_vmid }}
+      register: container_status
+      changed_when: false
+
+    - name: Start container if not running
+      ansible.builtin.shell: pct start {{ target_lxc_vmid }}
+      when: "'running' not in container_status.stdout"
+      register: container_started
+
+    - name: Wait for container SSH to be ready
+      ansible.builtin.wait_for:
+        host: "{{ hostvars['jellyfin_lxc']['ansible_host'] }}"
+        port: 22
+        delay: 5
+        timeout: 60
+        state: started
+      delegate_to: localhost
+      when: container_started is changed
+
+
+- name: Deploy Jellyfin on LXC container
+  hosts: jellyfin_lxc
+  gather_facts: true
+
+  roles:
+    - jellyfin_srv

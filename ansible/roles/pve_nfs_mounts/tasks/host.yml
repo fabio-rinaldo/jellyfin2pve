@@ -1,0 +1,93 @@
+---
+- name: Calculate systemd unit names from mount paths
+  set_fact:
+    video_mount_unit: "{{ nfs_mnt_dir_video | replace('/', '-') | regex_replace('^-', '') }}"
+    music_mount_unit: "{{ nfs_mnt_dir_music | replace('/', '-') | regex_replace('^-', '') }}"
+
+- name: Ensure NFS mount directories exist
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - "{{ nfs_mnt_dir_video }}"
+    - "{{ nfs_mnt_dir_music }}"
+
+- name: Create {{ video_mount_unit }}.mount'
+  copy:
+    dest: "/etc/systemd/system/{{ video_mount_unit }}.mount"
+    content: |
+      [Unit]
+      Description=NFS mount for video
+      Requires=network-online.target
+      After=network-online.target
+
+      [Mount]
+      What={{ nfs_server_ip }}:{{ nfs_export_video }}
+      Where={{ nfs_mnt_dir_video }}
+      Type=nfs
+      Options=defaults,_netdev,nofail,x-systemd.idle-timeout=300
+
+      [Install]
+      WantedBy=remote-fs.target
+    mode: '0644'
+
+- name: Create {{ video_mount_unit }}.automount
+  copy:
+    dest: "/etc/systemd/system/{{ video_mount_unit }}.automount"
+    content: |
+      [Unit]
+      Description=Automount NFS video share
+      Before=local-fs.target
+
+      [Automount]
+      Where={{ nfs_mnt_dir_video }}
+      TimeoutIdleSec=300
+
+      [Install]
+      WantedBy=multi-user.target
+    mode: '0644'
+
+- name: Create {{ music_mount_unit }}.mount'
+  copy:
+    dest: "/etc/systemd/system/{{ music_mount_unit }}.mount"
+    content: |
+      [Unit]
+      Description=NFS mount for music
+      Requires=network-online.target
+      After=network-online.target
+
+      [Mount]
+      What={{ nfs_server_ip }}:{{ nfs_export_music }}
+      Where={{ nfs_mnt_dir_music }}
+      Type=nfs
+      Options=defaults,_netdev,nofail,x-systemd.idle-timeout=300
+
+      [Install]
+      WantedBy=remote-fs.target
+    mode: '0644'
+
+- name: Create {{ music_mount_unit }}.automount
+  copy:
+    dest: "/etc/systemd/system/{{ music_mount_unit }}.automount"
+    content: |
+      [Unit]
+      Description=Automount NFS music share
+      Before=local-fs.target
+
+      [Automount]
+      Where={{ nfs_mnt_dir_music }}
+      TimeoutIdleSec=300
+
+      [Install]
+      WantedBy=multi-user.target
+    mode: '0644'
+
+- name: Enable and start automount units
+  systemd:
+    name: "{{ item }}"
+    enabled: yes
+    state: started
+    daemon_reload: yes
+  loop:
+    - "{{ video_mount_unit }}.automount"
+    - "{{ music_mount_unit }}.automount"

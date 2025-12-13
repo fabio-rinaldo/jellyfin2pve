@@ -1,0 +1,46 @@
+# Proxmox Connection Configuration
+proxmox_endpoint = "https://YOUR_PROXMOX_IP:PORT"
+proxmox_insecure = true          # Set to false (default) if using valid SSL certificate
+proxmox_node     = "my-pve-node" # Proxmox Node to deploy to
+
+# Container Options
+start_on_boot = false
+# startup_order     = 3     # Boot queue priority (optional)
+# startup_updelay   = 60    # Delay before starting next VM (seconds) (optional)
+# startup_downdelay = 180   # Graceful shutdown timeout (seconds) (optional)
+
+# Container Configuration
+container_id       = 100
+container_hostname = "jellyfin"
+
+# Storage Configuration
+template_storage_pool = "value"
+disk_storage_pool     = "value"
+
+# Network Interface A (Primary, Required)
+iface_a_bridge  = "vmbr0"
+iface_a_vlan    = 20 # Optional
+iface_a_ip      = "192.168.20.100/24"
+iface_a_gateway = "192.168.20.1"
+
+# Network Interface B (Optional)
+# Uncomment and configure to enable a second network interface
+# iface_b_bridge  = "vmbr1"
+# iface_b_vlan    = 30                    # Optional
+# iface_b_ip      = "192.168.30.100/24"
+# iface_b_gateway = null
+
+# DNS Servers
+dns_servers = ["192.168.20.1"]
+
+# NFS server
+nfs_server_ip = "192.168.20.150"
+nfs_export_video = "/export/path/video"
+nfs_export_music = "/export/path/music"
+nfs_mnt_dir_video = "/mnt/path/video"
+nfs_mnt_dir_music = "/mnt/path/music"
+
+# Secrets
+proxmox_api_token       = "USER@pam!TOKEN_ID=YOUR-API-TOKEN-SECRET-HERE"
+container_root_password = "CHANGE-ME-TO-YOUR-PASSWORD"
+container_ssh_keys      = []
