@@ -14,9 +14,7 @@ all:
       target_lxc_vmid: ${container_id}
       # GPU PASSTHROUGH
       dev0_lbl: "dev0"
-      dev1_lbl: "dev1"
       dev0_cfg_str: "/dev/dri/renderD128,uid=0,gid=44,mode=0666,deny-write=0"
-      dev1_cfg_str: "/dev/dri/card0,uid=0,gid=44,mode=0666,deny-write=0"
       # NFS
       nfs_mnt_lbl_video: "mp0"
       nfs_mnt_lbl_music: "mp1"

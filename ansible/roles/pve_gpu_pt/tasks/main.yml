@@ -16,21 +16,8 @@
   changed_when: false
   failed_when: false
 
-- name: "Check '{{dev1_lbl}}' config on LXC {{target_lxc_vmid}}"
-  ansible.builtin.shell:
-    cmd: pct config {{ target_lxc_vmid }} | grep -Fx {{dev1_lbl}}:\ {{dev1_cfg_str}} > /dev/null && echo 'ok'
-  register: dev1_check
-  changed_when: false
-  failed_when: false
-
 - name: "Pass-through /dev/dri/renderD128 to LXC {{ target_lxc_vmid }} as '{{dev0_lbl}}'"
   ansible.builtin.command: >
     pct set {{ target_lxc_vmid }} --{{dev0_lbl}} {{dev0_cfg_str}}
   when: dev0_check.stdout == ""
-  notify: reboot jellyfin lxc
-
-- name: "Pass-through /dev/dri/card0 to LXC {{ target_lxc_vmid }} as '{{dev1_lbl}}'"
-  ansible.builtin.command: >
-    pct set {{ target_lxc_vmid }} --{{dev1_lbl}} {{dev1_cfg_str}}
-  when: dev1_check.stdout == ""
   notify: reboot jellyfin lxc

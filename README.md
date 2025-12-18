@@ -206,7 +206,7 @@ Jellyfin need to be setup to use GPU acceleration. Log in as a Jellyfin admin, g
 These commands work on both host and container:
 ```bash
 ls -la /dev/dri/
-# expected output
+# expected output (card0 not passed to container)
 total 0
 drwxr-xr-x  3 root root        100 Dec 11 09:48 .
 drwxr-xr-x 19 root root       5240 Dec 11 09:50 ..
@@ -215,7 +215,8 @@ crw-rw----  1 root video  226,   0 Dec 11 09:48 card0
 crw-rw----  1 root render 226, 128 Dec 11 09:48 renderD128
 
 # Intel GPU capabilities
-vainfo  
+vainfo
+
 # Live GPU utilization 
 intel_gpu_top 
 ```
