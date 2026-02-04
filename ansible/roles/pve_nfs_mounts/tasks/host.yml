@@ -25,8 +25,7 @@
       What={{ nfs_server_ip }}:{{ nfs_export_video }}
       Where={{ nfs_mnt_dir_video }}
       Type=nfs
-      Options=defaults,_netdev,nofail,x-systemd.idle-timeout=300
-
+      Options=defaults,_netdev,nofail,soft,timeo=50,x-systemd.idle-timeout=300
       [Install]
       WantedBy=remote-fs.target
     mode: '0644'
@@ -60,8 +59,7 @@
       What={{ nfs_server_ip }}:{{ nfs_export_music }}
       Where={{ nfs_mnt_dir_music }}
       Type=nfs
-      Options=defaults,_netdev,nofail,x-systemd.idle-timeout=300
-
+      Options=defaults,_netdev,nofail,soft,timeo=50,x-systemd.idle-timeout=300
       [Install]
       WantedBy=remote-fs.target
     mode: '0644'
